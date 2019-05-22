@@ -8,7 +8,8 @@ let discovery = new LisaDiscovery({
     multicastAddress: '239.6.6.6',
     multicastPort: 5544,
     trigger: 'lisa-voice-search',
-    callback: () => {
+    callback: (input, address) => {
+        console.log(input + ' callback data from ' + address)
         const ifaces = os.networkInterfaces();
 
         Object.keys(ifaces).forEach(function (ifname) {

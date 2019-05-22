@@ -1,6 +1,6 @@
 {
   "name": "lisa-discovery",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "L.I.S.A. utility to self detection on network",
   "main": "index.js",
   "scripts": {

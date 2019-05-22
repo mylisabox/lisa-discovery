@@ -8,7 +8,7 @@ module.exports = class LisaDiscovery {
         this.callback = config.callback;
     }
 
-    start() {
+    start(socketBoundCallback) {
         let multicastPort = this.multicastPort
         let multicastAddress = this.multicastAddress
         let trigger = this.trigger
@@ -18,29 +18,53 @@ module.exports = class LisaDiscovery {
 
         socket.bind(multicastPort, function () {
             socket.addMembership(multicastAddress);
-        });
-
-        socket.on("message", function (data, rinfo) {
-            if (data.toString().trim() === trigger) {
-                let message = callback()
-                socket.send(Buffer.from(message),
-                    0,
-                    message.length,
-                    multicastPort,
-                    multicastAddress,
-                    function (err) {
-                        if (err) console.log(err);
-                    }
-                );
+            if (socketBoundCallback != null) {
+                socketBoundCallback(socket)
             }
         });
 
-        this.socket.on("error", function (err) {
+        socket.on('message', function (data, rinfo) {
+            let input = data.toString().trim()
+            if (input.startsWith(trigger)) {
+                let message = callback(input, rinfo.address)
+                if (message != null) {
+                    socket.send(Buffer.from(message),
+                        0,
+                        message.length,
+                        multicastPort,
+                        multicastAddress,
+                        function (err) {
+                            if (err) console.log(err);
+                        }
+                    );
+                }
+            }
+        });
+
+        this.socket.on('error', function (err) {
             console.log(err);
         });
     }
 
     stop() {
-        this.socket.close();
+        if (this.socket) {
+            try {
+                this.socket.close();
+            } catch (e) {
+                //ignore errors
+            }
+        }
+    }
+
+    sendMessage(message, callback) {
+        if (this.socket) {
+            this.socket.send(Buffer.from(message),
+                0,
+                message.length,
+                this.multicastPort,
+                this.multicastAddress,
+                callback
+            );
+        }
     }
 }
