@@ -28,15 +28,18 @@ module.exports = class LisaDiscovery {
             if (input.startsWith(trigger)) {
                 let message = callback(input, rinfo.address)
                 if (message != null) {
-                    socket.send(Buffer.from(message),
-                        0,
-                        message.length,
-                        multicastPort,
-                        multicastAddress,
-                        function (err) {
-                            if (err) console.log(err);
-                        }
-                    );
+                    setTimeout(() => {
+                        socket.send(Buffer.from(message),
+                            0,
+                            message.length,
+                            multicastPort,
+                            multicastAddress,
+                            function (err) {
+                                if (err) console.log(err);
+                                else console.log(message);
+                            }
+                        );
+                    }, 800);
                 }
             }
         });
