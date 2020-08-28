@@ -37,7 +37,39 @@ let discovery = new LisaDiscovery({
     },
 })
 
-discovery.start()
+let isConnected = false
+var monitorLocalNetwork = () => {
+    console.log('monitorLocalNetwork');
+    const networks = os.networkInterfaces();
+    let hasLocalNetwork = false
+    for(let networkName in networks) {
+        const networkAddresses = networks[networkName]
+        for (let networkAddressIndex in networkAddresses) {
+            let networkAddress = networkAddresses[networkAddressIndex]
+            if (!networkAddress.internal && networkAddress.mac !== '00:00:00:00:00:00') {
+                hasLocalNetwork = true
+                break;
+            }
+        }
+        if (hasLocalNetwork) {
+            break;
+        }
+    }
+
+    if (!isConnected && hasLocalNetwork) {
+        //we're connected to local network
+        console.log('monitorLocalNetwork restart');
+        discovery.start()
+    }
+
+    isConnected = hasLocalNetwork;
+
+    setTimeout(() => {
+        monitorLocalNetwork()
+    }, 1000)
+}
+
+monitorLocalNetwork()
 
 const testMessage = 'lisa-voice-search';
 const multicastAddress = '239.6.6.6';

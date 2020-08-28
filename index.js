@@ -8,19 +8,36 @@ module.exports = class LisaDiscovery {
         this.callback = config.callback;
     }
 
+    _bindSocket(socket, socketBoundCallback, trialNumber) {
+        if (trialNumber > 100)
+            return;
+        let multicastAddress = this.multicastAddress
+        let trials = trialNumber || 1
+        try {
+            socket.addMembership(multicastAddress);
+            if (socketBoundCallback != null) {
+                socketBoundCallback(socket)
+            }
+        } catch (err) {
+            let ms = 500 * trials
+            setTimeout(() => {
+                this._bindSocket(socket, socketBoundCallback, trials+1);
+            }, ms);
+            console.log(err);
+        }
+    }
+
     start(socketBoundCallback) {
         let multicastPort = this.multicastPort
         let multicastAddress = this.multicastAddress
         let trigger = this.trigger
         let callback = this.callback
+        this.stop()
         this.socket = dgram.createSocket({type: 'udp4', reuseAddr: true});
         let socket = this.socket
 
-        socket.bind(multicastPort, function () {
-            socket.addMembership(multicastAddress);
-            if (socketBoundCallback != null) {
-                socketBoundCallback(socket)
-            }
+        socket.bind(multicastPort, () => {
+            this._bindSocket(socket, socketBoundCallback)
         });
 
         socket.on('message', function (data, rinfo) {
