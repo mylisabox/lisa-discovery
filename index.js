@@ -8,7 +8,7 @@ module.exports = class LisaDiscovery {
         this.callback = config.callback;
     }
 
-    _bindSocket(socket, socketBoundCallback, trialNumber) {
+    _bindSocket(socket, socketBoundCallback, retryCallback, trialNumber) {
         if (trialNumber > 100)
             return;
         let multicastAddress = this.multicastAddress
@@ -19,10 +19,16 @@ module.exports = class LisaDiscovery {
                 socketBoundCallback(socket)
             }
         } catch (err) {
-            let ms = 500 * trials
-            setTimeout(() => {
-                this._bindSocket(socket, socketBoundCallback, trials+1);
-            }, ms);
+            if (err.code === 'ERR_SOCKET_DGRAM_NOT_RUNNING') {
+                setTimeout(() => {
+                    retryCallback()
+                }, 1000)
+            } else {
+                let ms = 500 * trials
+                setTimeout(() => {
+                    this._bindSocket(socket, socketBoundCallback, retryCallback, trials + 1);
+                }, ms);
+            }
             console.log(err);
         }
     }
@@ -37,7 +43,10 @@ module.exports = class LisaDiscovery {
         let socket = this.socket
 
         socket.bind(multicastPort, () => {
-            this._bindSocket(socket, socketBoundCallback)
+            socket
+            this._bindSocket(socket, socketBoundCallback, () => {
+                this.start(socketBoundCallback)
+            })
         });
 
         socket.on('message', function (data, rinfo) {
