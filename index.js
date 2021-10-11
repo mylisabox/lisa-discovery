@@ -43,7 +43,6 @@ export default class LisaDiscovery {
         let socket = this.socket
 
         socket.bind(multicastPort, () => {
-            socket
             this._bindSocket(socket, socketBoundCallback, () => {
                 this.start(socketBoundCallback)
             })
