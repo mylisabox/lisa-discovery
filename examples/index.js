@@ -1,8 +1,8 @@
-const dgram = require('dgram');
-const os = require('os');
-const socket = dgram.createSocket({type: 'udp4', reuseAddr: true});
+import dgram from 'dgram';
+import os from 'os';
+import LisaDiscovery from '../index.js';
 
-const LisaDiscovery = require('..')
+const socket = dgram.createSocket({type: 'udp4', reuseAddr: true});
 
 let discovery = new LisaDiscovery({
     multicastAddress: '239.6.6.6',

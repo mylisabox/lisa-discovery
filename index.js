@@ -1,6 +1,6 @@
-const dgram = require('dgram');
+import dgram from 'dgram';
 
-module.exports = class LisaDiscovery {
+export default class LisaDiscovery {
     constructor(config = {}) {
         this.multicastAddress = config.multicastAddress;
         this.multicastPort = config.multicastPort;
